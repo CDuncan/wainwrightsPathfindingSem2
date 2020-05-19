@@ -62,10 +62,10 @@ map1 <-
           homebutton = TRUE, hide = FALSE,
           popup = popupTable(summitPositions, zcol = c("Hill", "Number", "Elevation", 'Wainwright')))+
           
-  viewRGB(airMap, r=1,g=2,b=3, layer.name = '<RASTER> Aerial map')+
-  viewRGB(satMap, r=1,g=2,b=3, layer.name = '<RASTER> Sentinel-2 natural colour')+
-  viewRGB(mlMap, r=1,g=2,b=3, layer.name = '<RASTER> Bespoke land cover map')+
-  viewRGB(frictMap, r=1,g=2,b=3, layer.name = '<RASTER> Friction map')
+  viewRGB(airMap, r=1,g=2,b=3, layer.name = 'RASTER: Aerial map')+
+  viewRGB(satMap, r=1,g=2,b=3, layer.name = 'RASTER: Sentinel-2 natural colour')+
+  viewRGB(mlMap, r=1,g=2,b=3, layer.name = 'RASTER: Bespoke land cover map')+
+  viewRGB(frictMap, r=1,g=2,b=3, layer.name = 'RASTER: Friction map')
   
   
   #map1
