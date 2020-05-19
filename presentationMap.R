@@ -7,8 +7,6 @@ library(RPostgres)
 library(raster)
 
 
-
-
 connectU <- dbConnect(drv = Postgres(), 
                       host = 'localhost', dbname = 'hikingDatabase', 
                       user = 'CDuncan',   password = 'Cheviot')
@@ -30,15 +28,15 @@ formatPath <- function(path, nameLookup) {
     left_join(nameLookup, by = c('from' = 'hillnumber')) %>%
     transmute(order, from = NameAndNum, to, cost, geom) %>%
     left_join(nameLookup, by = c('to' = 'hillnumber')) %>%
-    transmute(Number = order, From = from, To = NameAndNum, Cost = round(cost), geom) 
+    transmute(Number = order, From = from, To = NameAndNum, Cost = round(as.numeric(cost)), geom) 
 }
 
 
-C1OW <- read_sf('raw/paths/minimumOW0067.gpkg') %>% formatPath(summitNames)
-C1WW <- read_sf('raw/paths/minimumWW0067.gpkg') %>% formatPath(summitNames)
-C2OW <- read_sf('raw/paths/minimumOW0133.gpkg') %>% formatPath(summitNames)
-C2WW <- read_sf('raw/paths/minimumWW0133.gpkg') %>% formatPath(summitNames)
-#LWW <- read_sf('raw/paths/originalMin.gpkg') %>% formatPath(summitNames)
+C1OW <- read_sf('raw/paths/minimumOW0067.gpkg') %>% formatPath(nameLookup = summitNames)
+C1WW <- read_sf('raw/paths/minimumWW0067.gpkg') %>% formatPath(nameLookup = summitNames)
+C2OW <- read_sf('raw/paths/minimumOW0133.gpkg') %>% formatPath(nameLookup = summitNames)
+C2WW <- read_sf('raw/paths/minimumWW0133.gpkg') %>% formatPath(nameLookup = summitNames)
+LWW <- read_sf('raw/paths/originalMin.gpkg') %>% rename(cost = weight) %>% formatPath(nameLookup = summitNames)
 
 # Input raster data ----
 airMap <- stack('raw/testCrop/aerialTriQuintRes.tif')
@@ -47,25 +45,30 @@ mlMap <- stack('raw/testCrop/reclassifiedLC5mTri.tif')
 frictMap <- stack('raw/testCrop/frictionMapTri.tif')
 
 # Plot maps ----
-map1 <- 
-  viewRGB(airMap, r=1,g=2,b=3, layer.name = 'Aerial map')+
-  viewRGB(satMap, r=1,g=2,b=3, layer.name = 'Sentinel-2 natural colour')+
-  viewRGB(mlMap, r=1,g=2,b=3, layer.name = 'Bespoke land cover map')+
-  viewRGB(frictMap, r=1,g=2,b=3, layer.name = 'Friction map')+
-  mapview(C1OW, color = 'red', layer.name = 'Greater Wainwrights: Campbell 0.067')+
-  mapview(C1WW, color = 'blue', layer.name = 'Wainwrights: Campbell 0.067')+
-  mapview(summitPositions, 
-          zcol = "Wainwright", 
-          layer.name = "Wainwright",
-          cex = 3.5, lwd = 1,
-          label = summitPositions$NameAndNum,
-          popup = popupTable(summitPositions,
-                             zcol = c("Hill",
-                                      "Number",
-                                      "Elevation",
-                                      'Wainwright')))
 
+
+
+map1 <- 
+  mapview(C1WW, layer.name = 'Wainwrights: Campbell 0.067', color = 'mediumblue', hide = TRUE, homebutton = FALSE)+
+  mapview(C2WW, layer.name = 'Wainwrights: Campbell 0.133', color = 'darkgreen', hide = TRUE, homebutton = FALSE)+
+  mapview(LWW, layer.name = 'Wainwrights: Langmuir', color = 'purple', hide = TRUE,homebutton = FALSE)+
+  mapview(C1OW, layer.name = 'Greater Wainwrights: Campbell 0.067', color = 'dodgerblue1', hide = TRUE, homebutton = FALSE)+
+  mapview(C2OW, layer.name = 'Greater Wainwrights: Campbell 0.133', color = 'green1', hide = TRUE, homebutton = FALSE)+
+  
+  
+  mapview(summitPositions, layer.name = "Wainwright",
+          zcol = "Wainwright", label = summitPositions$NameAndNum,
+          cex = 3.5, lwd = 1, col.regions = c('red', 'yellow'),
+          homebutton = TRUE, hide = FALSE,
+          popup = popupTable(summitPositions, zcol = c("Hill", "Number", "Elevation", 'Wainwright')))+
+          
+  viewRGB(airMap, r=1,g=2,b=3, layer.name = '<RASTER> Aerial map')+
+  viewRGB(satMap, r=1,g=2,b=3, layer.name = '<RASTER> Sentinel-2 natural colour')+
+  viewRGB(mlMap, r=1,g=2,b=3, layer.name = '<RASTER> Bespoke land cover map')+
+  viewRGB(frictMap, r=1,g=2,b=3, layer.name = '<RASTER> Friction map')
+  
+  
   #map1
-  mapshot(map1, url = paste0(getwd(),'/mapWithRasters.html'))
+  mapshot(map1, url = paste0(getwd(),'/index.html'))
   
   
